@@ -6,12 +6,13 @@
 
 1. Microsoft Entra 관리 센터에서 런처용 앱 등록을 생성합니다.
 2. 지원되는 계정 유형에서 개인 Microsoft 계정(MSA)을 포함하도록 선택합니다.
-3. 플랫폼에서 Public client/native (mobile & desktop) 앱 유형을 활성화합니다.
-4. Advanced settings의 Allow public client flows를 Yes로 설정합니다.
-5. Overview에서 Application (client) ID를 복사합니다.
-6. client secret은 만들거나 런처에 포함하지 않습니다. 데스크톱 공개 클라이언트에는 secret을 배포할 수 없습니다.
+3. Authentication > Add a platform에서 Mobile and desktop applications를 선택합니다.
+4. Redirect URI에 `https://login.microsoftonline.com/common/oauth2/nativeclient`를 추가합니다.
+5. Advanced settings의 Allow public client flows를 Yes로 설정합니다.
+6. Overview에서 Application (client) ID를 복사합니다.
+7. client secret은 만들거나 런처에 포함하지 않습니다. 데스크톱 공개 클라이언트에는 secret을 배포할 수 없습니다.
 
-기기 코드 흐름은 로컬 Redirect URI를 사용하지 않습니다. 사용자는 런처가 표시한 코드와 Microsoft 링크를 통해 인증합니다.
+사용자는 런처에 표시된 기기 코드를 Microsoft 인증 페이지에 입력합니다. MSAL의 기본 native-client redirect URI도 앱 등록에 추가해 둡니다.
 
 공식 안내:
 - https://learn.microsoft.com/entra/identity-platform/v2-oauth2-device-code
