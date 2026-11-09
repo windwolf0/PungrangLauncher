@@ -26,7 +26,7 @@
 ## 현재 개발 상태
 현재 WPF 런처 기본 화면, 풍랑빌 테마, 공지 JSON 조회, Minecraft Java 서버 상태 조회가 구현되어 있습니다.
 
-Microsoft 계정 로그인은 MSAL 기기 코드 인증, DPAPI 보호 토큰 캐시, Xbox Live/XSTS 교환, Minecraft Java Edition 이용 권한 및 프로필 확인 코드를 추가했습니다. 실제 로그인 테스트는 Microsoft Entra 앱 등록 Client ID 설정 후 진행해야 합니다.
+Microsoft 계정 로그인은 MSAL 내장 브라우저 인증과 native-client redirect URI, 기기 코드 대체 로그인, DPAPI 보호 토큰 캐시, Xbox Live/XSTS 교환, Minecraft Java Edition 이용 권한 및 프로필 확인 코드를 연결했습니다. 실제 로그인 테스트는 Microsoft Entra 앱 등록 Client ID 설정 후 진행해야 합니다.
 
 Minecraft/NeoForge 자동 설치, 게임 실행, 모드팩 자동 업데이트, Velopack 런처 업데이트 및 정식 설치 프로그램은 아직 구현되지 않았습니다. 게임 실행 버튼은 의도적으로 비활성화되어 있습니다.
 

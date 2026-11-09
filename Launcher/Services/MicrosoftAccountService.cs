@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Desktop;
 using PungrangLauncher.Configuration;
 using PungrangLauncher.Models;
 
@@ -44,6 +45,21 @@ internal sealed class MicrosoftAccountService : IDisposable
     public bool IsConfigured => MicrosoftAuthConfiguration.IsConfigured;
 
     public async Task<MinecraftAccountInfo> SignInAsync(
+        CancellationToken cancellationToken = default)
+    {
+        IPublicClientApplication application = GetApplication();
+        AuthenticationResult microsoftResult = await application
+            .AcquireTokenInteractive(MicrosoftAuthConfiguration.Scopes)
+            .WithUseEmbeddedWebView(true)
+            .WithPrompt(Prompt.SelectAccount)
+            .ExecuteAsync(cancellationToken);
+
+        return await CompleteMinecraftSignInAsync(microsoftResult, cancellationToken);
+    }
+
+    // Device-code flow remains available as a fallback when WebView2 is unavailable.
+    // This flow does not consume the redirect URI; the primary embedded-browser flow does.
+    public async Task<MinecraftAccountInfo> SignInWithDeviceCodeAsync(
         Func<DeviceCodeResult, Task> showDeviceCode,
         CancellationToken cancellationToken = default)
     {
@@ -118,7 +134,8 @@ internal sealed class MicrosoftAccountService : IDisposable
             _application = PublicClientApplicationBuilder
                 .Create(MicrosoftAuthConfiguration.ClientId)
                 .WithAuthority(MicrosoftAuthConfiguration.Authority)
-                .WithDefaultRedirectUri()
+                .WithRedirectUri(MicrosoftAuthConfiguration.RedirectUri)
+                .WithWindowsEmbeddedBrowserSupport()
                 .Build();
 
             RegisterTokenCache(_application.UserTokenCache);

@@ -6,7 +6,7 @@
 
 | 순서 | 기능 | 상태 | 완료 기준 |
 |---:|---|---|---|
-| 1 | Microsoft 계정 로그인 | 코드 연결 완료 · Client ID 및 실사용 인증 검증 대기 | Microsoft 기기 코드 로그인, Xbox Live/XSTS 인증, Minecraft 프로필 및 보유 권한 확인, DPAPI 토큰 캐시, 로그아웃 |
+| 1 | Microsoft 계정 로그인 | 내장 브라우저 및 native-client redirect 코드 연결 · Client ID 및 실사용 인증 검증 대기 | Microsoft 기기 코드 로그인, Xbox Live/XSTS 인증, Minecraft 프로필 및 보유 권한 확인, DPAPI 토큰 캐시, 로그아웃 |
 | 2 | Minecraft 및 NeoForge 자동 설치 | 대기 | Java 런타임 확인/설치, Minecraft 1.21.1 설치, NeoForge 21.1.265 프로파일 설치 및 무결성 검증 |
 | 3 | 게임 실행 및 메모리 설정 연결 | 대기 | 선택한 계정과 설치 프로파일로 실행, 최소/최대 메모리 설정 적용, 실행 상태 및 종료 감지 |
 | 4 | 모드팩 자동 업데이트 | 대기 | 원격 manifest 버전 비교, SHA-256/파일 크기 검증, 변경 파일만 다운로드, 사용자 월드와 개인 설정 보존 |
@@ -29,7 +29,7 @@
 
 WPF 런처 기본 화면, 공지사항 조회, Minecraft 서버 상태 조회가 구현되어 있습니다.
 
-Microsoft 로그인 코드는 MSAL 기기 코드 발급, Xbox Live 사용자 토큰 교환, XSTS, Minecraft Services 로그인, Java Edition entitlement 및 프로필 확인까지 연결했습니다. Windows x64 단일 EXE 빌드와 단일 파일 출력 검증은 GitHub Actions에서 성공했습니다.
+Microsoft 로그인 코드는 MSAL 내장 브라우저와 native-client redirect URI, 기기 코드 대체 인증, Xbox Live 사용자 토큰 교환, XSTS, Minecraft Services 로그인, Java Edition entitlement 및 프로필 확인까지 연결했습니다. Windows x64 단일 EXE 빌드와 단일 파일 출력 검증은 GitHub Actions에서 성공했습니다.
 
 실제 계정 인증은 Microsoft Entra 앱 등록 Client ID가 필요합니다. 현재 Client ID가 저장소 Actions 변수에 등록되지 않았기 때문에 로그인 버튼은 비활성화 상태입니다. Client ID를 등록한 빌드에서 실제 Microsoft/Xbox/Minecraft 인증을 성공해야 1번 항목을 완료로 처리합니다.
 

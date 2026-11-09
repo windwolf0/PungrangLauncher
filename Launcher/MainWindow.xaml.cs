@@ -60,11 +60,13 @@ public partial class MainWindow : Window
                 "docs/MICROSOFT_ACCOUNT_SETUP.md 안내에 따라 앱을 등록하고 " +
                 "Client ID를 빌드에 포함해 주세요.";
             MicrosoftLoginButton.IsEnabled = false;
+            DeviceCodeLoginButton.IsEnabled = false;
             LogoutButton.IsEnabled = false;
             return;
         }
 
         MicrosoftLoginButton.IsEnabled = true;
+        DeviceCodeLoginButton.IsEnabled = true;
         AccountStateText.Text = "저장된 계정 확인 중";
         AccountNameText.Text = "Microsoft 계정 연결 상태를 확인하고 있습니다.";
 
@@ -92,6 +94,16 @@ public partial class MainWindow : Window
 
     private async void MicrosoftLogin_Click(object sender, RoutedEventArgs e)
     {
+        await StartMicrosoftSignInAsync(useDeviceCode: false);
+    }
+
+    private async void DeviceCodeLogin_Click(object sender, RoutedEventArgs e)
+    {
+        await StartMicrosoftSignInAsync(useDeviceCode: true);
+    }
+
+    private async Task StartMicrosoftSignInAsync(bool useDeviceCode)
+    {
         if (!MicrosoftAuthConfiguration.IsConfigured)
         {
             MessageBox.Show(
@@ -103,41 +115,53 @@ public partial class MainWindow : Window
         }
 
         MicrosoftLoginButton.IsEnabled = false;
+        DeviceCodeLoginButton.IsEnabled = false;
         LogoutButton.IsEnabled = false;
         DeviceCodePanel.Visibility = Visibility.Collapsed;
-        AccountStateText.Text = "인증 코드 발급 중";
-        AccountNameText.Text = "Microsoft 인증을 준비하고 있습니다.";
-        AccountHelpText.Text = "브라우저에서 Microsoft 계정 인증을 완료해 주세요.";
+        AccountStateText.Text = useDeviceCode ? "기기 코드 발급 중" : "Microsoft 로그인 창 여는 중";
+        AccountNameText.Text = "Microsoft 계정 인증을 준비하고 있습니다.";
+        AccountHelpText.Text = useDeviceCode
+            ? "브라우저에서 표시된 코드를 입력해 주세요."
+            : "Microsoft 보안 로그인 창에서 계정 인증을 진행해 주세요.";
         StatusText.Text = "Microsoft 계정 인증 진행 중...";
 
         try
         {
-            MinecraftAccountInfo account = await _accountService.SignInAsync(
-                async deviceCode =>
-                {
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        _verificationUrl = deviceCode.VerificationUrl.ToString();
-                        DeviceCodeText.Text = deviceCode.UserCode;
-                        DeviceCodeUrlText.Text = _verificationUrl;
-                        DeviceCodePanel.Visibility = Visibility.Visible;
-                        AccountStateText.Text = "브라우저 인증 대기 중";
-                        AccountNameText.Text = "인증 페이지에서 코드를 입력해 주세요.";
-                        StatusText.Text = "Microsoft 계정 인증을 기다리고 있습니다.";
-                    });
+            MinecraftAccountInfo account;
 
-                    try
+            if (useDeviceCode)
+            {
+                account = await _accountService.SignInWithDeviceCodeAsync(
+                    async deviceCode =>
                     {
-                        Process.Start(new ProcessStartInfo(_verificationUrl!)
+                        await Dispatcher.InvokeAsync(() =>
                         {
-                            UseShellExecute = true
+                            _verificationUrl = deviceCode.VerificationUrl.ToString();
+                            DeviceCodeText.Text = deviceCode.UserCode;
+                            DeviceCodeUrlText.Text = _verificationUrl;
+                            DeviceCodePanel.Visibility = Visibility.Visible;
+                            AccountStateText.Text = "기기 코드 인증 대기 중";
+                            AccountNameText.Text = "인증 페이지에서 코드를 입력해 주세요.";
+                            StatusText.Text = "Microsoft 계정 인증을 기다리고 있습니다.";
                         });
-                    }
-                    catch
-                    {
-                        // The user can still open the displayed verification URL manually.
-                    }
-                });
+
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo(_verificationUrl!)
+                            {
+                                UseShellExecute = true
+                            });
+                        }
+                        catch
+                        {
+                            // The user can still open the displayed verification URL manually.
+                        }
+                    });
+            }
+            else
+            {
+                account = await _accountService.SignInAsync();
+            }
 
             SetLoggedInState(account);
             StatusText.Text = "Microsoft, Xbox Live 및 Minecraft 계정 확인 완료";
@@ -151,6 +175,13 @@ public partial class MainWindow : Window
         {
             SetLoggedOutState(ex.Message);
             StatusText.Text = "계정 인증을 완료하지 못했습니다.";
+        }
+        catch (MsalClientException ex) when (!useDeviceCode)
+        {
+            SetLoggedOutState(
+                "내장 Microsoft 로그인 창을 열지 못했습니다. WebView2 Runtime을 확인하거나 기기 코드 로그인을 이용해 주세요. " +
+                ex.Message);
+            StatusText.Text = "내장 브라우저 로그인 실패";
         }
         catch (MsalException ex)
         {
@@ -170,6 +201,7 @@ public partial class MainWindow : Window
         finally
         {
             MicrosoftLoginButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
+            DeviceCodeLoginButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
             LogoutButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
         }
     }

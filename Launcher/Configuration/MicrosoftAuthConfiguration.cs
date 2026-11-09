@@ -31,6 +31,9 @@ public static class MicrosoftAuthConfiguration
 
     public const string Authority = "https://login.microsoftonline.com/consumers";
 
+    // Microsoft Entra Mobile and desktop applications redirect URI for embedded browser sign-in.
+    public const string RedirectUri = "https://login.microsoftonline.com/common/oauth2/nativeclient";
+
     // Xbox Live sign-in and offline access are required for the Minecraft account exchange.
     public static readonly string[] Scopes =
     [

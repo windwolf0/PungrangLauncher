@@ -38,6 +38,10 @@
             <WrapPanel Margin="0,14,0,0">
               <Button x:Name="MicrosoftLoginButton" Content="Microsoft 로그인"
                       Click="MicrosoftLogin_Click" HorizontalAlignment="Left"/>
+              <Button x:Name="DeviceCodeLoginButton" Content="기기 코드 로그인"
+                      Click="DeviceCodeLogin_Click" Background="#405565"
+                      HorizontalAlignment="Left"
+                      ToolTip="내장 로그인 창을 사용할 수 없을 때 이용하세요."/>
               <Button x:Name="LogoutButton" Content="로그아웃" Click="Logout_Click"
                       Background="#405565" IsEnabled="False" HorizontalAlignment="Left"/>
             </WrapPanel>
