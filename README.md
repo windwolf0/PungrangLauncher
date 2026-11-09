@@ -26,12 +26,14 @@
 ## 현재 개발 상태
 현재 WPF 런처 기본 화면, 풍랑빌 테마, 공지 JSON 조회, Minecraft Java 서버 상태 조회가 구현되어 있습니다.
 
-Microsoft 계정 인증, 게임/NeoForge 설치 및 실행, 모드팩 자동 업데이트, Velopack 업데이트, 설치 프로그램은 아직 구현 및 검증 단계가 아닙니다. 게임 실행 버튼은 의도적으로 비활성화되어 있습니다.
+Microsoft 계정 로그인은 MSAL 기기 코드 인증, DPAPI 보호 토큰 캐시, Xbox Live/XSTS 교환, Minecraft Java Edition 이용 권한 및 프로필 확인 코드를 추가했습니다. 실제 로그인 테스트는 Microsoft Entra 앱 등록 Client ID 설정 후 진행해야 합니다.
 
-## Microsoft 계정 로그인 준비
-첫 번째 개발 항목은 Microsoft 계정 로그인입니다. Microsoft Entra 앱 등록과 Application (client) ID가 필요합니다. 비밀번호나 client secret을 런처에 포함하지 않습니다.
+Minecraft/NeoForge 자동 설치, 게임 실행, 모드팩 자동 업데이트, Velopack 런처 업데이트 및 정식 설치 프로그램은 아직 구현되지 않았습니다. 게임 실행 버튼은 의도적으로 비활성화되어 있습니다.
 
-설정 방법은 [Microsoft 계정 로그인 준비 문서](docs/MICROSOFT_ACCOUNT_SETUP.md)를 참고하세요.
+## Microsoft 계정 로그인 설정
+Microsoft Entra 앱 등록의 Application (client) ID가 필요합니다. Client ID를 `PUNGRANG_MICROSOFT_CLIENT_ID` 환경 변수로 지정해 런처를 빌드합니다. Client ID는 공개 식별자이며 비밀번호나 client secret은 런처에 포함하지 않습니다.
+
+설정 방법은 [Microsoft 계정 로그인 설정 문서](docs/MICROSOFT_ACCOUNT_SETUP.md)를 참고하세요.
 
 ## 빌드
 Windows 10/11 개발 PC와 .NET 10 SDK에서:
