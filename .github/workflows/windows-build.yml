@@ -6,24 +6,73 @@ on:
     paths:
       - "Launcher/**"
       - ".github/workflows/windows-build.yml"
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
-      - name: Publish self-contained Windows x64
-        run: dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
-      - name: Upload build artifact
+
+      - name: Publish single-file self-contained Windows x64
+        run: >-
+          dotnet publish Launcher/PungrangLauncher.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:IncludeAllContentForSelfExtract=true
+          -p:DebugSymbols=false
+          -p:DebugType=None
+          -o publish
+
+      - name: Verify single EXE output
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem publish -File
+          $exe = Get-Item publish/PungrangLauncher.exe -ErrorAction Stop
+          Write-Host "EXE size: $([math]::Round($exe.Length / 1MB, 2)) MB"
+          $otherFiles = $files | Where-Object { $_.Name -ne "PungrangLauncher.exe" }
+          if ($otherFiles.Count -gt 0) {
+            Write-Host "Additional publish files:"
+            $otherFiles | ForEach-Object { Write-Host $_.Name }
+          }
+          else {
+            Write-Host "Single EXE output confirmed."
+          }
+
+      - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PungrangLauncher-win-x64
-          path: publish/
+          name: PungrangLauncher-win-x64-exe
+          path: publish/PungrangLauncher.exe
           if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download EXE artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: PungrangLauncher-win-x64-exe
+          path: release
+
+      - name: Publish EXE to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/PungrangLauncher.exe
+          generate_release_notes: true
