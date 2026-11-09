@@ -58,7 +58,7 @@ public partial class MainWindow : Window
             AccountNameText.Text = "Microsoft 계정 로그인은 앱 등록 Client ID 설정 후 사용할 수 있습니다.";
             AccountHelpText.Text =
                 "docs/MICROSOFT_ACCOUNT_SETUP.md 안내에 따라 앱을 등록하고 " +
-                "PUNGRANG_MICROSOFT_CLIENT_ID 환경 변수에 Client ID를 설정해 주세요.";
+                "Client ID를 빌드에 포함해 주세요.";
             MicrosoftLoginButton.IsEnabled = false;
             LogoutButton.IsEnabled = false;
             return;
@@ -170,7 +170,7 @@ public partial class MainWindow : Window
         finally
         {
             MicrosoftLoginButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
-            LogoutButton.IsEnabled = _currentAccount is not null;
+            LogoutButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
         }
     }
 
@@ -243,7 +243,7 @@ public partial class MainWindow : Window
         AccountNameText.Text = "Minecraft 계정이 연결되지 않았습니다.";
         AccountHelpText.Text = message;
         DeviceCodePanel.Visibility = Visibility.Collapsed;
-        LogoutButton.IsEnabled = false;
+        LogoutButton.IsEnabled = MicrosoftAuthConfiguration.IsConfigured;
     }
 
     private async void RefreshServer_Click(object sender, RoutedEventArgs e)
