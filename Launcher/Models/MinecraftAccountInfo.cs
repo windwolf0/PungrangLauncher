@@ -1,6 +1,6 @@
 namespace PungrangLauncher.Models;
 
-public sealed class MinecraftAccountInfo
+internal sealed class MinecraftAccountInfo
 {
     public required string MicrosoftUsername { get; init; }
     public required string Gamertag { get; init; }
