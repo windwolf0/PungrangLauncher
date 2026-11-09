@@ -117,6 +117,7 @@ internal sealed class MicrosoftAccountService : IDisposable
             _application = PublicClientApplicationBuilder
                 .Create(MicrosoftAuthConfiguration.ClientId)
                 .WithAuthority(MicrosoftAuthConfiguration.Authority)
+                .WithDefaultRedirectUri()
                 .Build();
 
             RegisterTokenCache(_application.UserTokenCache);
@@ -150,6 +151,14 @@ internal sealed class MicrosoftAccountService : IDisposable
                     TryDeleteCache();
                 }
                 catch (InvalidDataException)
+                {
+                    TryDeleteCache();
+                }
+                catch (IOException)
+                {
+                    TryDeleteCache();
+                }
+                catch (UnauthorizedAccessException)
                 {
                     TryDeleteCache();
                 }
