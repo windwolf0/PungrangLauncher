@@ -1,13 +1,30 @@
 using System;
+using System.Reflection;
 
 namespace PungrangLauncher.Configuration;
 
 public static class MicrosoftAuthConfiguration
 {
-    // This is a public client ID, not a secret. Set it after registering the launcher
-    // in Microsoft Entra. The environment variable is useful for local/CI builds.
-    public static string ClientId =>
-        Environment.GetEnvironmentVariable("PUNGRANG_MICROSOFT_CLIENT_ID")?.Trim() ?? "";
+    // The client ID is a public identifier, not a secret. Prefer a build-time embedded
+    // value for releases, while allowing a runtime environment override for developers.
+    public static string ClientId
+    {
+        get
+        {
+            string? environmentValue = Environment
+                .GetEnvironmentVariable("PUNGRANG_MICROSOFT_CLIENT_ID")?
+                .Trim();
+
+            if (!string.IsNullOrWhiteSpace(environmentValue))
+                return environmentValue;
+
+            return typeof(MicrosoftAuthConfiguration).Assembly
+                .GetCustomAttributes<AssemblyMetadataAttribute>()
+                .FirstOrDefault(attribute => attribute.Key == "MicrosoftClientId")?
+                .Value?
+                .Trim() ?? "";
+        }
+    }
 
     public static bool IsConfigured =>
         Guid.TryParse(ClientId, out Guid clientId) && clientId != Guid.Empty;
