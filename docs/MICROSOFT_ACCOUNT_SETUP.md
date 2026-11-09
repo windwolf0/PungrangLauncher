@@ -20,14 +20,16 @@
 
 ## 런처 빌드에 Client ID 설정
 
-현재 코드는 아래 환경 변수를 읽습니다.
+개발 PC에서는 Client ID를 publish 시점에 어셈블리 메타데이터로 포함합니다.
 
 ```powershell
 $env:PUNGRANG_MICROSOFT_CLIENT_ID = "앱 등록의 Application (client) ID"
-dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugSymbols=false -p:DebugType=None -o publish
+dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:MicrosoftClientId="$env:PUNGRANG_MICROSOFT_CLIENT_ID" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugSymbols=false -p:DebugType=None -o publish
 ```
 
-이 Client ID는 공개 클라이언트 식별자이며 비밀 값이 아닙니다. 정식 배포 빌드에서는 등록한 Client ID를 런처 빌드에 포함해야 일반 사용자 PC에서 별도 환경 변수 설정 없이 로그인할 수 있습니다. 현재 GitHub Actions에는 Client ID가 아직 제공되지 않아 로그인 버튼은 비활성화 상태로 빌드됩니다.
+GitHub Actions Release 빌드에 Client ID를 포함하려면 저장소의 Settings > Secrets and variables > Actions > Variables에서 `MICROSOFT_CLIENT_ID`라는 Repository variable을 추가합니다. 이 값은 공개 클라이언트 식별자이므로 Secret이 아니라 Variable로 관리합니다. Windows 빌드 workflow가 이 값을 EXE에 포함합니다.
+
+Client ID가 제공되지 않으면 런처의 로그인 버튼은 비활성화됩니다. Client ID가 있는 빌드에서는 사용자 PC에 환경 변수를 따로 설정하지 않아도 됩니다.
 
 ## 인증 흐름
 
