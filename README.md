@@ -31,7 +31,7 @@ Microsoft 계정 로그인은 MSAL 기기 코드 인증, DPAPI 보호 토큰 캐
 Minecraft/NeoForge 자동 설치, 게임 실행, 모드팩 자동 업데이트, Velopack 런처 업데이트 및 정식 설치 프로그램은 아직 구현되지 않았습니다. 게임 실행 버튼은 의도적으로 비활성화되어 있습니다.
 
 ## Microsoft 계정 로그인 설정
-Microsoft Entra 앱 등록의 Application (client) ID가 필요합니다. Client ID를 `PUNGRANG_MICROSOFT_CLIENT_ID` 환경 변수로 지정해 런처를 빌드합니다. Client ID는 공개 식별자이며 비밀번호나 client secret은 런처에 포함하지 않습니다.
+Microsoft Entra 앱 등록의 Application (client) ID가 필요합니다. 로컬 빌드에서는 `PUNGRANG_MICROSOFT_CLIENT_ID`를 설정하고 `-p:MicrosoftClientId=...`로 포함합니다. GitHub Release 빌드에서는 Repository variable `MICROSOFT_CLIENT_ID`를 사용합니다. Client ID는 공개 식별자이며 비밀번호나 client secret은 런처에 포함하지 않습니다.
 
 설정 방법은 [Microsoft 계정 로그인 설정 문서](docs/MICROSOFT_ACCOUNT_SETUP.md)를 참고하세요.
 
@@ -41,7 +41,7 @@ Windows 10/11 개발 PC와 .NET 10 SDK에서:
 ```powershell
 dotnet restore Launcher/PungrangLauncher.csproj
 dotnet build Launcher/PungrangLauncher.csproj -c Release
-dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugSymbols=false -p:DebugType=None -o publish
+dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:MicrosoftClientId="$env:PUNGRANG_MICROSOFT_CLIENT_ID" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugSymbols=false -p:DebugType=None -o publish
 ```
 
 GitHub Actions는 main 브랜치와 v* 태그에서 Windows x64 단일 EXE를 빌드합니다. v* 태그 빌드가 성공하면 Release에 `PungrangLauncher.exe`를 개별 파일로 첨부합니다. Actions artifact는 테스트용 다운로드이며, Release의 EXE와 구분됩니다.
