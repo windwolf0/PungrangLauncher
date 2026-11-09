@@ -26,6 +26,7 @@ jobs:
           -c Release
           -r win-x64
           --self-contained true
+          -p:MicrosoftClientId="${{ vars.MICROSOFT_CLIENT_ID }}"
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:IncludeAllContentForSelfExtract=true
