@@ -11,7 +11,7 @@ using PungrangLauncher.Models;
 
 namespace PungrangLauncher.Services;
 
-public sealed class MicrosoftAccountService : IDisposable
+internal sealed class MicrosoftAccountService : IDisposable
 {
     private const string XboxUserAuthUrl = "https://user.auth.xboxlive.com/user/authenticate";
     private const string XboxXstsUrl = "https://xsts.auth.xboxlive.com/xsts/authorize";
