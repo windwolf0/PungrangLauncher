@@ -1,30 +1,52 @@
-# Microsoft 계정 로그인 준비
+# Microsoft 계정 로그인 설정
 
-Microsoft 계정 로그인은 런처가 암호를 직접 받지 않는 MSAL 기반 데스크톱 OAuth 흐름으로 구현합니다. WPF는 MSAL.NET 지원 데스크톱 플랫폼이며, 개인 Microsoft 계정도 지원하는 공개 클라이언트로 구성합니다.
+풍랑빌 런처는 MSAL.NET의 기기 코드(Device Code) 인증을 사용합니다. 런처에 표시되는 코드를 Microsoft 인증 페이지에 입력하며, 런처는 Microsoft 계정 비밀번호를 직접 받지 않습니다.
 
-## 필요한 사전 설정
+## Microsoft Entra 앱 등록
 
 1. Microsoft Entra 관리 센터에서 런처용 앱 등록을 생성합니다.
-2. 지원되는 계정 유형에서 개인 Microsoft 계정을 포함하도록 선택합니다.
-3. 앱 등록의 Authentication에서 Add a platform > Mobile and desktop applications를 선택합니다.
-4. 시스템 브라우저 로그인을 사용할 수 있도록 Redirect URI에 `http://localhost`를 등록합니다.
-5. Advanced settings의 Allow public client flows를 Yes로 설정합니다.
-6. Overview에서 Application (client) ID를 복사합니다.
-7. client secret은 만들거나 런처에 포함하지 않습니다.
+2. 지원되는 계정 유형에서 개인 Microsoft 계정(MSA)을 포함하도록 선택합니다.
+3. 플랫폼에서 Public client/native (mobile & desktop) 앱 유형을 활성화합니다.
+4. Advanced settings의 Allow public client flows를 Yes로 설정합니다.
+5. Overview에서 Application (client) ID를 복사합니다.
+6. client secret은 만들거나 런처에 포함하지 않습니다. 데스크톱 공개 클라이언트에는 secret을 배포할 수 없습니다.
+
+기기 코드 흐름은 로컬 Redirect URI를 사용하지 않습니다. 사용자는 런처가 표시한 코드와 Microsoft 링크를 통해 인증합니다.
 
 공식 안내:
-- https://learn.microsoft.com/entra/identity-platform/scenario-desktop-app-configuration
-- https://learn.microsoft.com/entra/identity-platform/msal-authentication-flows
+- https://learn.microsoft.com/entra/identity-platform/v2-oauth2-device-code
+- https://learn.microsoft.com/entra/msal/dotnet/acquiring-tokens/desktop-mobile/acquiring-tokens-interactively
+- https://learn.microsoft.com/en-us/xbox/gdk/docs/services/fundamentals/s2s-auth-calls/service-authentication/live-website-authentication?view=gdk-2604
+
+## 런처 빌드에 Client ID 설정
+
+현재 코드는 아래 환경 변수를 읽습니다.
+
+```powershell
+$env:PUNGRANG_MICROSOFT_CLIENT_ID = "앱 등록의 Application (client) ID"
+dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugSymbols=false -p:DebugType=None -o publish
+```
+
+이 Client ID는 공개 클라이언트 식별자이며 비밀 값이 아닙니다. 정식 배포 빌드에서는 등록한 Client ID를 런처 빌드에 포함해야 일반 사용자 PC에서 별도 환경 변수 설정 없이 로그인할 수 있습니다. 현재 GitHub Actions에는 Client ID가 아직 제공되지 않아 로그인 버튼은 비활성화 상태로 빌드됩니다.
+
+## 인증 흐름
+
+1. Microsoft 계정: `XboxLive.signin` 및 `XboxLive.offline_access` 권한으로 기기 코드 인증
+2. Xbox Live: Microsoft 액세스 토큰을 Xbox 사용자 토큰으로 교환
+3. XSTS: Minecraft Services용 XSTS 토큰 발급
+4. Minecraft Services: Minecraft 액세스 토큰 발급
+5. Entitlements: Java Edition 이용 권한 확인
+6. Profile: Minecraft 플레이어 프로필과 UUID 확인
 
 ## 보안 요구사항
 
 - Microsoft 계정 암호를 런처 UI에서 입력받지 않습니다.
-- MSAL의 공개 클라이언트 인증 흐름을 사용하며 앱에 client secret을 포함하지 않습니다.
-- 토큰 및 refresh token을 소스 코드, 설정 파일, 로그에 기록하지 않습니다.
-- 토큰 캐시는 Windows 사용자 범위 보호 기능을 사용합니다.
-- 로그아웃 시 로컬 계정 캐시를 제거합니다.
-- Microsoft 계정 인증만 성공했다고 Minecraft 소유권/플레이 권한을 가정하지 않습니다. Xbox Live/XSTS 및 Minecraft 서비스 인증, 프로필/권한 확인을 별도로 수행합니다.
+- OAuth client secret, 사용자 토큰, 개인 키를 저장소에 커밋하지 않습니다.
+- MSAL 토큰 캐시는 Windows DPAPI의 CurrentUser 범위로 암호화하여 LocalAppData에 저장합니다.
+- Minecraft 액세스 토큰은 현재 런처 프로세스 메모리에만 보관합니다. 파일이나 로그에 기록하지 않습니다.
+- 로그아웃 시 MSAL 계정 캐시를 제거합니다.
+- Xbox/Minecraft 인증 실패, Xbox 연령/가족 설정 오류, 게임 이용 권한 없음, 프로필 미생성 상태를 구분해 안내합니다.
 
-## 개발 진행에 필요한 값
+## 유의 사항
 
-앱 등록 후 Application (client) ID가 필요합니다. 이 값은 공개 클라이언트 식별자이며 client secret과 다릅니다. client ID가 준비되기 전에는 인증 서비스의 UI/구조와 테스트를 준비하되 실제 계정 인증 완료를 선언하지 않습니다.
+Microsoft 계정 앱 등록만으로 Minecraft Services 접근이 자동 승인된다고 단정할 수 없습니다. 신규 앱 등록이 Minecraft Services에서 403을 반환한다면 Microsoft/Minecraft 측의 API 접근 승인 절차를 확인해야 합니다. 실제 사용자 인증 성공과 Java Edition 권한 확인은 등록된 Client ID로 테스트한 뒤에만 완료 처리합니다.
