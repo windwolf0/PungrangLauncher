@@ -1,0 +1,29 @@
+name: Build Windows launcher
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Launcher/**"
+      - ".github/workflows/windows-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Publish self-contained Windows x64
+        run: dotnet publish Launcher/PungrangLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PungrangLauncher-win-x64
+          path: publish/
+          if-no-files-found: error
